@@ -1,6 +1,6 @@
 import unittest
 
-from parse_dumpsys import parse_data
+from parse_dumpsys import parse_data, parse_metadata
 
 
 class TestParseDumpsys(unittest.TestCase):
@@ -73,3 +73,21 @@ class TestParseDumpsys(unittest.TestCase):
                 "custom actions": "[Action:mName='Shuffle off, mIcon=2131232770, mExtras=null, Action:mName='Like, mIcon=2131233493, mExtras=null, Action:mName='Repeat off, mIcon=2131232683, mExtras=null, Action:mName='Dislike, mIcon=2131233486, mExtras=null]",
                 "active item id": "51",
                 "error": "null"})
+
+        self.assertEqual(parse_data(""), {})
+
+    def test_parse_metadata_simple(self):
+        metadata = "metadata: size=7, description=Bourée , Jethro Tull  , Stand Up"
+        track = parse_metadata(metadata)
+        assert track.title == "Bourée"
+        assert track.artist == "Jethro Tull"
+
+    def test_parse_metadata_king_complicated(self):
+        metadata = 'metadata: size=7, description=21st Century Schizoid Man (Including "Mirrors"), King Crimson, In the Court of the Crimson King'
+        track = parse_metadata(metadata)
+        assert track.title == '21st Century Schizoid Man (Including "Mirrors")'
+        assert track.artist == "King Crimson"
+
+    def test_parse_metadata_missing_description(self):
+        metadata = "metadata: size=7"
+        self.assertRaises(IndexError, lambda: parse_metadata(metadata))

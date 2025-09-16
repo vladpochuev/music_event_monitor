@@ -1,11 +1,31 @@
 import re
 
+from track import Track
+
+
+def get_object_fields(obj):
+    first = obj.find("{")
+    last = obj.rfind("}")
+
+    if first == -1 or last == -1:
+        return obj
+    else:
+        return obj[first + 1:last]
+
+
+def parse_metadata(metadata):
+    track_info = re.findall(r"(?<=description=)[\s\S]+", metadata)[0]
+    values = track_info.split(",")
+    return Track(title=values[0].strip(), artist=values[1].strip())
+
+
 def parse_data(data):
     result = {}
     strings = data.split("\n")
     result.update(separate_objects(strings))
     result.update(separate_key_values(strings))
     return result
+
 
 def separate_objects(strings):
     result = {}
@@ -36,6 +56,7 @@ def separate_objects(strings):
 
     return result
 
+
 def separate_key_values(strings):
     result = {}
 
@@ -62,12 +83,14 @@ def separate_key_values(strings):
 
     return result
 
+
 def remove_redundant_comas(string):
     if string.endswith(","):
         string = string[:-1]
     if string.startswith(","):
         string = string[1:]
     return string
+
 
 def get_key_value(string):
     for idx, ch in enumerate(string):
