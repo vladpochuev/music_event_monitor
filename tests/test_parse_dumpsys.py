@@ -79,14 +79,14 @@ class TestParseDumpsys(unittest.TestCase):
     def test_parse_metadata_simple(self):
         metadata = "metadata: size=7, description=Bourée , Jethro Tull  , Stand Up"
         track = parse_metadata(metadata)
-        assert track.title == "Bourée"
-        assert track.artist == "Jethro Tull"
+        self.assertEqual(track.title, "Bourée")
+        self.assertEqual(track.artist, "Jethro Tull")
 
     def test_parse_metadata_king_complicated(self):
         metadata = 'metadata: size=7, description=21st Century Schizoid Man (Including "Mirrors"), King Crimson, In the Court of the Crimson King'
         track = parse_metadata(metadata)
-        assert track.title == '21st Century Schizoid Man (Including "Mirrors")'
-        assert track.artist == "King Crimson"
+        self.assertEqual(track.title, '21st Century Schizoid Man (Including "Mirrors")')
+        self.assertEqual(track.artist, "King Crimson")
 
     def test_parse_metadata_missing_description(self):
         metadata = "metadata: size=7"

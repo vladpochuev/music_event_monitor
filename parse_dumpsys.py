@@ -14,9 +14,12 @@ def get_object_fields(obj):
 
 
 def parse_metadata(metadata):
-    track_info = re.findall(r"(?<=description=)[\s\S]+", metadata)[0]
-    values = track_info.split(",")
-    return Track(title=values[0].strip(), artist=values[1].strip())
+    try:
+        track_info = re.findall(r"(?<=description=)[\s\S]+", metadata)[0]
+        values = track_info.split(",")
+        return Track(title=",".join(values[:-2]).strip(), artist=values[-2].strip())
+    except IndexError:
+        raise ValueError
 
 
 def parse_data(data):

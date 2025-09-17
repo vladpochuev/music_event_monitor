@@ -71,7 +71,7 @@ def report_track_changes(current_track, last_track):
             print("Stopped")
         elif state == State.PAUSED:
             print("Paused")
-        elif state == State.PLAYING:
+        elif state == State.PLAYING and last_track.state == State.PAUSED or last_track.state == State.STOPPED:
             print("Playing")
 
 
@@ -95,7 +95,11 @@ def main():
             package_block = extract_first_package_block(media_session_dump)
             if not package_block.strip():
                 raise ConnectionError
-            current_track = parse_track_info(package_block)
+
+            try:
+                current_track = parse_track_info(package_block)
+            except ValueError:
+                continue
 
             if current_track != last_track and is_track_valid(current_track):
                 if last_track:
