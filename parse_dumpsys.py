@@ -27,6 +27,13 @@ def parse_data(data):
     return result
 
 
+def is_inside_object(string, text):
+    left = string.find("{")
+    right = string.rfind("}")
+
+    text_idx = string.find(text)
+    return left < text_idx and text_idx + len(text) < right
+
 def separate_objects(strings):
     result = {}
 
@@ -34,12 +41,20 @@ def separate_objects(strings):
         start_idx = 0
         counter = 0
 
+        arrays = re.findall(r"(?<=,)[^,]+=\[[\s\S]*?],", string)
+        for array in arrays:
+            if not is_inside_object(string, array):
+                string = string.replace(array, "")
+                strings[string_idx] = string
+                key_value = get_key_value(remove_redundant_comas(array.strip()))
+                result[key_value[0]] = key_value[1]
+
         for idx, ch in enumerate(string):
             if counter == 0:
                 start_idx = idx
-            if re.match(r"[{\[]", ch):
+            if ch == "{":
                 counter += 1
-            elif re.match(r"[}\]]", ch):
+            elif ch == "}":
                 counter -= 1
 
                 if counter == 0:
