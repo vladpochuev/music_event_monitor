@@ -1,4 +1,5 @@
 import os
+import re
 import subprocess
 import time
 from subprocess import CalledProcessError
@@ -26,17 +27,26 @@ def fetch_media_session_dump():
     )
 
 
-def extract_package_block(package, dump_text):
+def extract_first_package_block(dump_text):
+    session_title = r"Sessions Stack - have \d* sessions:"
     strings = dump_text.splitlines()
     package_block = []
     text_shift = 0
+    take_next_indent = False
+
     for line in strings:
         if text_shift != 0:
             if len(line) - len(line.lstrip()) <= text_shift:
                 break
             package_block.append(line.strip())
-        if package in line:
+
+        if take_next_indent:
             text_shift = len(line) - len(line.lstrip())
+            take_next_indent = False
+
+        if re.match(session_title, line.strip()):
+            take_next_indent = True
+
     return "\n".join(package_block)
 
 
@@ -72,7 +82,6 @@ def is_track_valid(track):
 
 
 def main():
-    package_name = os.getenv("PACKAGE_NAME")
     interval = float(os.getenv("INTERVAL_MS")) / 1000
 
     if not is_adb_available():
@@ -83,7 +92,7 @@ def main():
     try:
         while True:
             media_session_dump = fetch_media_session_dump()
-            package_block = extract_package_block(package_name, media_session_dump)
+            package_block = extract_first_package_block(media_session_dump)
             if not package_block.strip():
                 raise ConnectionError
             current_track = parse_track_info(package_block)
