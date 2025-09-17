@@ -62,18 +62,23 @@ def parse_track_info(package_block):
 
 
 def report_track_changes(current_track, last_track):
-    if current_track.title != last_track.title:
-        print(f'New track: {current_track.title} - {current_track.artist}')
+    if last_track is None or current_track.title != last_track.title:
+        print(f"New track: {current_track.title} - {current_track.artist}")
 
-    if current_track.state != last_track.state:
-        state = current_track.state
-        if state == State.STOPPED:
-            print("Stopped")
-        elif state == State.PAUSED:
-            print("Paused")
-        elif state == State.PLAYING and last_track.state == State.PAUSED or last_track.state == State.STOPPED:
-            print("Playing")
+    if last_track is None or current_track.state != last_track.state:
+        state_map = {
+            State.PLAYING: "Playing",
+            State.PAUSED: "Paused",
+            State.STOPPED: "Stopped"
+        }
 
+        if current_track.state == State.PLAYING and last_track is not None:
+            if last_track.state not in (State.PAUSED, State.STOPPED):
+                return
+
+        state = state_map.get(current_track.state)
+        if state:
+            print(state)
 
 def is_track_valid(track):
     return (track.artist != "null"
@@ -94,7 +99,7 @@ def main():
             media_session_dump = fetch_media_session_dump()
             package_block = extract_first_package_block(media_session_dump)
             if not package_block.strip():
-                raise ConnectionError
+                continue
 
             try:
                 current_track = parse_track_info(package_block)
@@ -102,8 +107,7 @@ def main():
                 continue
 
             if current_track != last_track and is_track_valid(current_track):
-                if last_track:
-                    report_track_changes(current_track, last_track)
+                report_track_changes(current_track, last_track)
                 last_track = current_track
 
             time.sleep(interval)
